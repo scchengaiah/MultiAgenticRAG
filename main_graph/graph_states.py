@@ -1,12 +1,14 @@
 from dataclasses import dataclass, field
-from typing import Annotated, Literal, TypedDict
+from typing import Annotated, Literal
 
 from langchain_core.documents import Document
 from langchain_core.messages import AnyMessage
 from langgraph.graph import add_messages
+from pydantic import BaseModel, Field
+from typing_extensions import TypedDict
 
 from utils.utils import reduce_docs
-from pydantic import BaseModel, Field
+
 
 @dataclass(kw_only=True)
 class InputState:
@@ -19,7 +21,7 @@ class InputState:
     """
 
     messages: Annotated[list[AnyMessage], add_messages]
-    
+
     """Messages track the primary execution state of the agent.
 
     Typically accumulates a pattern of Human/AI/Human/AI messages; if
@@ -49,7 +51,6 @@ class InputState:
         A new list of messages with the messages from `right` merged into `left`.
         If a message in `right` has the same ID as a message in `left`, the
         message from `right` will replace the message from `left`."""
-    
 
 
 class Router(TypedDict):
@@ -62,12 +63,11 @@ class Router(TypedDict):
 class GradeHallucinations(BaseModel):
     """Binary score for hallucination present in generation answer."""
 
-    binary_score: str = Field(
-        description="Answer is grounded in the facts, '1' or '0'"
-    )
+    binary_score: str = Field(description="Answer is grounded in the facts, '1' or '0'")
 
 
 # Primary agent state
+
 
 @dataclass(kw_only=True)
 class AgentState(InputState):
@@ -79,4 +79,6 @@ class AgentState(InputState):
     """A list of steps in the research plan."""
     documents: Annotated[list[Document], reduce_docs] = field(default_factory=list)
     """Populated by the retriever. This is a list of documents that the agent can reference."""
-    hallucination: GradeHallucinations = field(default_factory=lambda: GradeHallucinations(binary_score="0"))
+    hallucination: GradeHallucinations = field(
+        default_factory=lambda: GradeHallucinations(binary_score="0")
+    )
